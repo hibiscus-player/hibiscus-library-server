@@ -12,7 +12,7 @@
         <maven.compiler.source>17</maven.compiler.source>
         <maven.compiler.target>17</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <standard-plugin.version>a1a7396d5f</standard-plugin.version>
+        <default-plugin.version>a1a7396d5f</default-plugin.version>
     </properties>
 
     <repositories>
@@ -26,7 +26,7 @@
         <dependency>
             <groupId>com.github.hibiscus-player</groupId>
             <artifactId>hibiscus-default-plugin</artifactId>
-            <version>${standard-plugin.version}</version>
+            <version>${default-plugin.version}</version>
         </dependency>
         <dependency>
             <groupId>dev.morphia.morphia</groupId>
@@ -120,7 +120,7 @@
                                 <entry>
                                     <groupId>com.github.hibiscus-player</groupId>
                                     <artifactId>hibiscus-default-plugin</artifactId>
-                                    <version>${standard-plugin.version}</version>
+                                    <version>${default-plugin.version}</version>
                                 </entry>
                             </entries>
                         </configuration>

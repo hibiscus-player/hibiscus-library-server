@@ -10,6 +10,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
 import java.util.regex.Pattern;
+import java.util.stream.Stream;
 
 public class JavaPluginManager {
     public static final Pattern NEWLINE_MATCHER = Pattern.compile("[\\n\\r]+");
@@ -30,70 +31,79 @@ public class JavaPluginManager {
         }
     }
 
-    public void loadAllPlugins() throws IOException {
-        // Load all plugin jars
+    public Path getPluginsFolder() {
+        return pluginsFolder;
+    }
+    public Plugin loadPlugin(Path path) {
+        if (Files.isRegularFile(path) && path.getFileName().toString().endsWith(".jar")) {
+            PluginClassLoader classLoader;
+            try {
+                classLoader = new PluginClassLoader(path);
+            } catch (IOException | InvalidPluginDescriptionFileException | NoSuchMethodError e) {
+                e.printStackTrace();
+                return null;
+            }
 
-        Files.walk(pluginsFolder, 1, FileVisitOption.FOLLOW_LINKS).forEach(path->{
-            if (Files.isRegularFile(path) && path.getFileName().toString().endsWith(".jar")) {
-                PluginClassLoader classLoader;
-                try {
-                    classLoader = new PluginClassLoader(path);
-                } catch (IOException | InvalidPluginDescriptionFileException | NoSuchMethodError e) {
-                    e.printStackTrace();
-                    return;
+            PluginDescriptionFile descriptionFile = classLoader.getDescriptionFile();
+            String prefix = "[" + descriptionFile.getId() + "] ";
+            PrefixedPrintStream pp = new PrefixedPrintStream(System.out, prefix);
+            pp.println("Loading plugin from jar " + pluginsFolder.relativize(path));
+            try {
+                Class<?> mainClass = classLoader.loadClass(descriptionFile.getMainClass());
+                if (!Plugin.class.isAssignableFrom(mainClass)) {
+                    new InvalidPluginDescriptionFileException(prefix + "Main class points to a class which does not extend Plugin!").fillInStackTrace().printStackTrace();
+                    return null;
                 }
-
-                PluginDescriptionFile descriptionFile = classLoader.getDescriptionFile();
-                String prefix = "[" + descriptionFile.getId() + "] ";
-                PrefixedPrintStream pp = new PrefixedPrintStream(System.out, prefix);
-                pp.println("Loading plugin from jar " + pluginsFolder.relativize(path));
+                APIVersion apiVersion = descriptionFile.getApiVersion();
+                if (apiVersion == null) {
+                    System.err.println("WARNING: Plugin " + descriptionFile.getId() + " does not declare which version of the API it was compiled against!");
+                    System.err.println("WARNING: We offer no backwards compatibility, watch out for major changes.");
+                } else if (!apiVersion.isCompatible(libraryServer.getAPIVersion())) {
+                    // API might not be compatible
+                    System.err.println("WARNING: Plugin " + descriptionFile.getId() + " was made of an older version of the API, namely \"" + apiVersion + "\".");
+                    System.err.println("WARNING: We offer no backwards compatibility, watch out for major changes.");
+                }
                 try {
-                    Class<?> mainClass = classLoader.loadClass(descriptionFile.getMainClass());
-                    if (!Plugin.class.isAssignableFrom(mainClass)) {
-                        new InvalidPluginDescriptionFileException(prefix + "Main class points to a class which does not extend Plugin!").fillInStackTrace().printStackTrace();
-                        return;
-                    }
-                    APIVersion apiVersion = descriptionFile.getApiVersion();
-                    if (apiVersion == null) {
-                        System.err.println("WARNING: Plugin " + descriptionFile.getId() + " does not declare which version of the API it was compiled against!");
-                        System.err.println("WARNING: We offer no backwards compatibility, watch out for major changes.");
-                    } else if (!apiVersion.isCompatible(libraryServer.getAPIVersion())) {
-                        // API might not be compatible
-                        System.err.println("WARNING: Plugin " + descriptionFile.getId() + " was made of an older version of the API, namely \"" + apiVersion + "\".");
-                        System.err.println("WARNING: We offer no backwards compatibility, watch out for major changes.");
-                    }
-                    try {
-                        Plugin plugin = mainClass.asSubclass(Plugin.class).getConstructor().newInstance();
-                        plugin.libraryServer = libraryServer;
-                        plugin.description = descriptionFile;
-                        plugin.logger = pp;
-                        plugins.put(descriptionFile.getId(),plugin);
-                        classLoader.setPlugin(plugin);
-                    } catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
-                        e.printStackTrace();
-                        try {
-                            classLoader.release();
-                        } catch (Exception ex) {
-                            ex.printStackTrace();
-                        }
-                    }
-                } catch (ClassNotFoundException e) {
+                    Plugin plugin = mainClass.asSubclass(Plugin.class).getConstructor().newInstance();
+                    plugin.libraryServer = libraryServer;
+                    plugin.description = descriptionFile;
+                    plugin.logger = pp;
+                    plugins.put(descriptionFile.getId(), plugin);
+                    classLoader.setPlugin(plugin);
+                    return plugin;
+                } catch (InstantiationException | IllegalAccessException | InvocationTargetException |
+                         NoSuchMethodException e) {
                     e.printStackTrace();
                     try {
                         classLoader.release();
                     } catch (Exception ex) {
                         ex.printStackTrace();
                     }
-                } catch (UnsupportedClassVersionError e) {
-                    System.err.println(prefix + "The plugin \"" + descriptionFile.getId() + "\" was compiled with a newer Java version! Unloading...");
-                    try {
-                        classLoader.release();
-                    } catch (Exception ex) {
-                        ex.printStackTrace();
-                    }
+                }
+            } catch (ClassNotFoundException e) {
+                e.printStackTrace();
+                try {
+                    classLoader.release();
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                }
+            } catch (UnsupportedClassVersionError e) {
+                System.err.println(prefix + "The plugin \"" + descriptionFile.getId() + "\" was compiled with a newer Java version! Unloading...");
+                try {
+                    classLoader.release();
+                } catch (Exception ex) {
+                    ex.printStackTrace();
                 }
             }
-        });
+        }
+        return null;
+    }
+
+    public void loadAllPlugins() throws IOException {
+        // Load all plugin jars
+        Stream<Path> stream = Files.walk(pluginsFolder, 1, FileVisitOption.FOLLOW_LINKS);
+        stream.forEach(this::loadPlugin);
+        stream.close();
 
         if (plugins.size() != 0) {
             //System.out.println("Resolving dependencies");
@@ -122,8 +132,6 @@ public class JavaPluginManager {
                 }
             }
             System.out.println("Successfully enabled all plugins.");
-        } else {
-            System.out.println("Found no plugins, nothing to load here.");
         }
     }
 
