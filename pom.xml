@@ -12,14 +12,10 @@
         <maven.compiler.source>17</maven.compiler.source>
         <maven.compiler.target>17</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <standard-plugin.version>a1a7396d5f</standard-plugin.version>
     </properties>
 
     <repositories>
-        <repository>
-            <id>central</id>
-            <name>Maven Central</name>
-            <url>https://repo1.maven.org/maven2/</url>
-        </repository>
         <repository>
             <id>jitpack</id>
             <url>https://jitpack.io/</url>
@@ -27,6 +23,11 @@
     </repositories>
 
     <dependencies>
+        <dependency>
+            <groupId>com.github.hibiscus-player</groupId>
+            <artifactId>hibiscus-default-plugin</artifactId>
+            <version>${standard-plugin.version}</version>
+        </dependency>
         <dependency>
             <groupId>dev.morphia.morphia</groupId>
             <artifactId>morphia-core</artifactId>
@@ -69,6 +70,13 @@
         </dependency>
     </dependencies>
 
+    <pluginRepositories>
+        <pluginRepository>
+            <id>jitpack</id>
+            <url>https://jitpack.io/</url>
+        </pluginRepository>
+    </pluginRepositories>
+
     <build>
         <resources>
             <resource>
@@ -76,5 +84,49 @@
                 <filtering>true</filtering>
             </resource>
         </resources>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <version>3.3.0</version>
+                <configuration>
+                    <transformers>
+                        <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                            <mainClass>me.mrgazdag.hibiscus.library.LibraryServer</mainClass>
+                        </transformer>
+                    </transformers>
+                </configuration>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>com.github.hibiscus-player</groupId>
+                <artifactId>jar-pack-maven-plugin</artifactId>
+                <version>2.0.0</version>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>jar-pack</goal>
+                        </goals>
+                        <configuration>
+                            <entries>
+                                <entry>
+                                    <groupId>com.github.hibiscus-player</groupId>
+                                    <artifactId>hibiscus-default-plugin</artifactId>
+                                    <version>${standard-plugin.version}</version>
+                                </entry>
+                            </entries>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
     </build>
 </project>
