@@ -8,6 +8,7 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 
 public class RestCoreApi implements CoreApi {
     private static final String PROFILE_ID_HEADER = "X-Profile-ID";
@@ -33,7 +34,7 @@ public class RestCoreApi implements CoreApi {
         con.setRequestProperty(SERVER_KEY_HEADER, serverKey);
         int status = con.getResponseCode();
         // Read response
-        BufferedReader br = new BufferedReader(new InputStreamReader(con.getInputStream()));
+        BufferedReader br = new BufferedReader(new InputStreamReader(con.getInputStream(), StandardCharsets.UTF_8));
         StringBuilder sb = new StringBuilder();
         while (br.ready()) {
             sb.append(br.readLine());

@@ -9,8 +9,8 @@ import me.mrgazdag.hibiscus.library.coreapi.RestCoreApi;
 import java.nio.file.FileSystems;
 
 public class LibraryMain {
-    private static final int DEFAULT_PORT = 80;
-    private static final String DEFAULT_CORE_URL = "http://hibiscus-player.ddns.net";
+    public static final int DEFAULT_PORT = 80;
+    public static final String DEFAULT_CORE_URL = "http://hibiscus-player.ddns.net";
     public static void main(String[] args) {
         Integer port = null;
         String coreUrl = null;
