@@ -239,4 +239,12 @@ public class ConnectedDevice implements DelegateEventNode<DeviceEvent> {
     public EventNode<DeviceEvent> getEventNode() {
         return eventNode;
     }
+
+    @Override
+    public String toString() {
+        return "ConnectedDevice{" +
+                "deviceId=" + deviceId +
+                ", userId=" + user.getUserId() +
+                '}';
+    }
 }

@@ -25,4 +25,14 @@ public class StrictPacketHandler extends PacketHandler {
     protected void unexpectedPacket(ClientPacket packet) {
         device.kick("Unexpected packet");
     }
+
+    @Override
+    protected void unknownPacket(int packetId) {
+        device.kick("Unknown packet received");
+    }
+
+    @Override
+    protected void invalidPacket(String message) {
+        device.kick("Invalid packet received");
+    }
 }

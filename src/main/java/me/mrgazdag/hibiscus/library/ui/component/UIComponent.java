@@ -1,5 +1,9 @@
 package me.mrgazdag.hibiscus.library.ui.component;
 
+import me.mrgazdag.hibiscus.library.ui.action.client.ClientPageAction;
+import me.mrgazdag.hibiscus.library.ui.action.client.VoidClientPageAction;
+import me.mrgazdag.hibiscus.library.ui.action.server.ServerPageAction;
+import me.mrgazdag.hibiscus.library.ui.action.server.VoidServerPageAction;
 import me.mrgazdag.hibiscus.library.ui.change.ComponentChangeHandler;
 import me.mrgazdag.hibiscus.library.ui.color.Color;
 import me.mrgazdag.hibiscus.library.ui.color.ThemeColor;
@@ -12,12 +16,16 @@ import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.BiFunction;
+import java.util.function.Function;
 
 public abstract class UIComponent {
     private final Page page;
     private final int componentId;
     private final ComponentChangeHandler changeHandler;
     private final List<UIProperty<?>> properties;
+    private final List<ClientPageAction<?>> clientActions;
+    private final List<ServerPageAction<?>> serverActions;
     private final ComponentVisibilityProperty visibilityProperty;
 
     public UIComponent(Page page, int componentId) {
@@ -25,8 +33,12 @@ public abstract class UIComponent {
         this.componentId = componentId;
         this.changeHandler = new ComponentChangeHandler(page);
         this.properties = new ArrayList<>();
+        this.clientActions = new ArrayList<>();
+        this.serverActions = new ArrayList<>();
         this.visibilityProperty = visibilityProperty(true);
     }
+
+    // Properties
     protected ComponentVisibilityProperty visibilityProperty(boolean defaultValue) {
         // Special case, no property ID needed, as this does not get sent to the client
         return new ComponentVisibilityProperty(this, (short) -1, changeHandler, defaultValue);
@@ -90,6 +102,39 @@ public abstract class UIComponent {
         ThemeColorProperty prop = new ThemeColorProperty(this, propertyId, changeHandler, defaultValue);
         properties.add(prop);
         return prop;
+    }
+
+    // Client actions
+
+    public ClientPageAction<?> getClientPageAction(int actionId) {
+        return clientActions.get(actionId);
+    }
+    protected VoidClientPageAction voidClientAction() {
+        short actionId = (short) clientActions.size();
+        VoidClientPageAction action = new VoidClientPageAction(actionId);
+        clientActions.add(action);
+        return action;
+    }
+    protected <T extends ClientPageAction<?>> T customClientAction(Function<Short, T> constructor) {
+        short actionId = (short) clientActions.size();
+        T action = constructor.apply(actionId);
+        clientActions.add(action);
+        return action;
+    }
+
+    // Server actions
+    protected VoidServerPageAction voidServerAction() {
+        short actionId = (short) serverActions.size();
+        VoidServerPageAction action = new VoidServerPageAction(this, actionId);
+        serverActions.add(action);
+        return action;
+    }
+
+    protected <T extends ServerPageAction<?>> T customClientAction(BiFunction<UIComponent, Short, T> constructor) {
+        short actionId = (short) clientActions.size();
+        T action = constructor.apply(this, actionId);
+        serverActions.add(action);
+        return action;
     }
 
     public ComponentVisibilityProperty getVisibility() {

@@ -4,10 +4,7 @@ import jakarta.websocket.CloseReason;
 import me.mrgazdag.hibiscus.library.users.ConnectedDevice;
 import me.mrgazdag.hibiscus.library.users.networking.ClientPacket;
 import me.mrgazdag.hibiscus.library.users.networking.ServerPacket;
-import me.mrgazdag.hibiscus.library.users.networking.client.ClientChangePagePacket;
-import me.mrgazdag.hibiscus.library.users.networking.client.ClientHelloPacket;
-import me.mrgazdag.hibiscus.library.users.networking.client.ClientIdentityCompletePacket;
-import me.mrgazdag.hibiscus.library.users.networking.client.ClientPingPacket;
+import me.mrgazdag.hibiscus.library.users.networking.client.*;
 import me.mrgazdag.hibiscus.library.users.networking.protocol.Protocol;
 
 import java.nio.ByteBuffer;
@@ -24,9 +21,13 @@ public abstract class PacketHandler {
     }
 
     public void handle(ByteBuffer buffer) {
-        byte id = buffer.get();
-        ClientPacket packet = getProtocol().constructClientPacket(id, buffer);
-        packet.handle(this);
+        byte packetId = buffer.get();
+        ClientPacket packet = getProtocol().constructClientPacket(packetId, buffer);
+        if (packet == null) {
+            unknownPacket(packetId);
+        } else {
+            packet.handle(this);
+        }
     }
 
     protected void log(Object obj) {
@@ -62,6 +63,8 @@ public abstract class PacketHandler {
         return packet;
     }
     protected abstract void unexpectedPacket(ClientPacket packet);
+    protected abstract void unknownPacket(int packetId);
+    protected abstract void invalidPacket(String message);
     public void onClientHello(ClientHelloPacket packet) {
         unexpectedPacket(packet);
     }
@@ -72,6 +75,9 @@ public abstract class PacketHandler {
         unexpectedPacket(packet);
     }
     public void onClientChangePage(ClientChangePagePacket packet) {
+        unexpectedPacket(packet);
+    }
+    public void onClientPageAction(ClientPageActionPacket packet) {
         unexpectedPacket(packet);
     }
 }

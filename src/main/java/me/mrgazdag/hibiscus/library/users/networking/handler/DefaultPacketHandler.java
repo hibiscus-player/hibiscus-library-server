@@ -4,15 +4,15 @@ import jakarta.websocket.CloseReason;
 import me.mrgazdag.hibiscus.library.coreapi.ProfileData;
 import me.mrgazdag.hibiscus.library.event.device.DeviceConnectEvent;
 import me.mrgazdag.hibiscus.library.event.device.DeviceSwitchPageEvent;
+import me.mrgazdag.hibiscus.library.ui.action.client.ClientPageAction;
+import me.mrgazdag.hibiscus.library.ui.component.UIComponent;
+import me.mrgazdag.hibiscus.library.ui.page.Page;
 import me.mrgazdag.hibiscus.library.ui.page.PageContext;
 import me.mrgazdag.hibiscus.library.users.ConnectedDevice;
 import me.mrgazdag.hibiscus.library.users.ConnectedUser;
 import me.mrgazdag.hibiscus.library.users.DeviceState;
 import me.mrgazdag.hibiscus.library.users.networking.ClientPacket;
-import me.mrgazdag.hibiscus.library.users.networking.client.ClientChangePagePacket;
-import me.mrgazdag.hibiscus.library.users.networking.client.ClientHelloPacket;
-import me.mrgazdag.hibiscus.library.users.networking.client.ClientIdentityCompletePacket;
-import me.mrgazdag.hibiscus.library.users.networking.client.ClientPingPacket;
+import me.mrgazdag.hibiscus.library.users.networking.client.*;
 import me.mrgazdag.hibiscus.library.users.networking.protocol.DefaultProtocol;
 import me.mrgazdag.hibiscus.library.users.networking.protocol.Protocol;
 import me.mrgazdag.hibiscus.library.users.networking.server.ServerHelloPacket;
@@ -21,7 +21,8 @@ import me.mrgazdag.hibiscus.library.users.networking.server.ServerPongPacket;
 import java.io.IOException;
 
 public class DefaultPacketHandler extends PacketHandler {
-    private boolean authCompleted;
+    private int packetErrorCounter;
+    private int unknownPacketIdCounter;
     public DefaultPacketHandler(ConnectedDevice device) {
         super(device);
     }
@@ -54,6 +55,24 @@ public class DefaultPacketHandler extends PacketHandler {
 
         // Default to strict impl
         device.kick("Unexpected packet");
+    }
+
+    @Override
+    protected void unknownPacket(int packetId) {
+        System.err.println("WARNING! Unknown packet received from device " + device.getDeviceId() + ": " + packetId);
+        unknownPacketIdCounter++;
+        if (unknownPacketIdCounter > 50) {
+            device.kick("Too many packet errors! Please update your client.");
+        }
+    }
+
+    @Override
+    protected void invalidPacket(String message) {
+        System.err.println("WARNING! Packet error on device " + device.getDeviceId() + ": " + message);
+        packetErrorCounter++;
+        if (packetErrorCounter > 50) {
+            device.kick("Too many packet errors! Please update your client.");
+        }
     }
 
     @Override
@@ -155,5 +174,29 @@ public class DefaultPacketHandler extends PacketHandler {
         device.getLibraryServer().getEventManager().callEvent(event);
 
         device.setCurrentPage(event.getNewPage());
+    }
+
+    @Override
+    public void onClientPageAction(ClientPageActionPacket packet) {
+        if (device.getCurrentPage() == null) {
+            unexpectedPacket(packet);
+            return;
+        }
+
+        Page page = device.getCurrentPage().page();
+        UIComponent component = page.getComponent(packet.getComponentId());
+        if (component == null) {
+            // Handle wrong component id
+            invalidPacket("invalid component id " + packet.getComponentId() + " on page " + device.getCurrentPage().sourcePageId());
+            return;
+        }
+        ClientPageAction<?> action = component.getClientPageAction(packet.getActionId());
+        if (action == null) {
+            // Handle wrong action id
+            invalidPacket("invalid action id " + packet.getActionId() + " on component " + component.getComponentId());
+            return;
+        }
+
+        action.handle(device, packet.getData());
     }
 }

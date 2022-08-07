@@ -30,6 +30,7 @@ public class Protocol {
     }
 
     public ClientPacket constructClientPacket(byte id, ByteBuffer buffer) {
+        if (!clientMap.containsKey(id)) return null;
         return clientMap.get(id).apply(buffer);
     }
     public byte getServerPacketID(Class<? extends ServerPacket> packetClass) {

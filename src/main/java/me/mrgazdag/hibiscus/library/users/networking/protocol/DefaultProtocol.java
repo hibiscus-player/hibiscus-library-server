@@ -1,9 +1,6 @@
 package me.mrgazdag.hibiscus.library.users.networking.protocol;
 
-import me.mrgazdag.hibiscus.library.users.networking.client.ClientChangePagePacket;
-import me.mrgazdag.hibiscus.library.users.networking.client.ClientHelloPacket;
-import me.mrgazdag.hibiscus.library.users.networking.client.ClientIdentityCompletePacket;
-import me.mrgazdag.hibiscus.library.users.networking.client.ClientPingPacket;
+import me.mrgazdag.hibiscus.library.users.networking.client.*;
 import me.mrgazdag.hibiscus.library.users.networking.server.*;
 
 public class DefaultProtocol extends Protocol {
@@ -14,6 +11,7 @@ public class DefaultProtocol extends Protocol {
         register(ClientIdentityCompletePacket::new);
         register(ClientPingPacket::new);
         register(ClientChangePagePacket::new);
+        register(ClientPageActionPacket::new);
 
         // Server Packets
         register(ServerHelloPacket.class);
@@ -24,5 +22,6 @@ public class DefaultProtocol extends Protocol {
         register(ServerPageListChangePacket.class);
         register(ServerChangePagePacket.class);
         register(ServerUpdatePagePacket.class);
+        register(ServerPageActionPacket.class);
     }
 }

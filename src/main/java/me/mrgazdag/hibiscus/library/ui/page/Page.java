@@ -2,6 +2,7 @@ package me.mrgazdag.hibiscus.library.ui.page;
 
 import me.mrgazdag.hibiscus.library.ui.UIManager;
 import me.mrgazdag.hibiscus.library.ui.change.PageChangeHandler;
+import me.mrgazdag.hibiscus.library.ui.component.ButtonComponent;
 import me.mrgazdag.hibiscus.library.ui.component.TextBoxComponent;
 import me.mrgazdag.hibiscus.library.ui.component.TitleBoxComponent;
 import me.mrgazdag.hibiscus.library.ui.component.UIComponent;
@@ -207,6 +208,14 @@ public class Page {
     public TextBoxComponent createTextBox() {
         int id =  componentIdCounter.getAndIncrement();
         TextBoxComponent component = new TextBoxComponent(this, id);
+        components.put(id, component);
+        changeHandler.componentAdded(component);
+        return component;
+    }
+
+    public ButtonComponent createButton() {
+        int id =  componentIdCounter.getAndIncrement();
+        ButtonComponent component = new ButtonComponent(this, id);
         components.put(id, component);
         changeHandler.componentAdded(component);
         return component;

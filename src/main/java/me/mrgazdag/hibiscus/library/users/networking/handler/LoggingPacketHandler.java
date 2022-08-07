@@ -42,4 +42,14 @@ public class LoggingPacketHandler extends PacketHandler {
     protected void unexpectedPacket(ClientPacket packet) {
         log(packet);
     }
+
+    @Override
+    protected void unknownPacket(int packetId) {
+        System.err.println("WARNING! Unknown packet received from device " + device.getDeviceId() + ": " + packetId);
+    }
+
+    @Override
+    protected void invalidPacket(String message) {
+        System.err.println("WARNING! Packet error on device " + device.getDeviceId() + ": " + message);
+    }
 }

@@ -110,4 +110,14 @@ public class ConnectedUser implements DelegateEventNode<UserEvent> {
     public EventNode<UserEvent> getEventNode() {
         return eventNode;
     }
+
+    @Override
+    public String toString() {
+        return "ConnectedUser{" +
+                "userId='" + userId + '\'' +
+                ", profileId='" + profileId + '\'' +
+                ", displayName='" + displayName + '\'' +
+                ", nickname='" + nickname + '\'' +
+                '}';
+    }
 }
