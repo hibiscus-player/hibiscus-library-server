@@ -67,6 +67,12 @@ public abstract class UIComponent {
         properties.add(prop);
         return prop;
     }
+    protected <E extends Enum<E>> EnumProperty<E> enumProperty(Class<E> clazz, E defaultValue) {
+        short propertyId = (short) properties.size();
+        EnumProperty<E> prop = new EnumProperty<>(this, propertyId, changeHandler, clazz, defaultValue);
+        properties.add(prop);
+        return prop;
+    }
     protected FloatProperty floatProperty(float defaultValue) {
         short propertyId = (short) properties.size();
         FloatProperty prop = new FloatProperty(this, propertyId, changeHandler, defaultValue);
