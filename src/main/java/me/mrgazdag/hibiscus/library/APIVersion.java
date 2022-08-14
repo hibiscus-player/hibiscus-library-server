@@ -9,7 +9,7 @@ public record APIVersion(int major, int minor, int patch) {
 
     @Override
     public String toString() {
-        return "APIVersion[" + major + "." + minor + "." + patch + ']';
+        return major + "." + minor + "." + patch;
     }
 
     public static APIVersion fromString(String source) {
