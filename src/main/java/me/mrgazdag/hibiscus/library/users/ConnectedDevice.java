@@ -244,7 +244,7 @@ public class ConnectedDevice implements DelegateEventNode<DeviceEvent> {
     public String toString() {
         return "ConnectedDevice{" +
                 "deviceId=" + deviceId +
-                ", userId=" + user.getUserId() +
+                ", userId=" + (user != null ? user.getUserId() : null) +
                 '}';
     }
 }
