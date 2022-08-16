@@ -12,7 +12,7 @@
         <maven.compiler.source>17</maven.compiler.source>
         <maven.compiler.target>17</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <default-plugin.version>a1a7396d5f</default-plugin.version>
+        <default-plugin.version>6e2324eba9</default-plugin.version>
     </properties>
 
     <repositories>
