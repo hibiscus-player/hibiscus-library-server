@@ -111,9 +111,9 @@ public class PermissionManager {
         PermissionNode node = this.users.get(profileId);
         if (node == null) {
             node = new PermissionNode();
-            node.addGroup(defaultGroup);
-            node.addGroup(profileId == null ? guestGroup : userGroup);
         }
+        node.addGroup(defaultGroup);
+        node.addGroup(profileId == null ? guestGroup : userGroup);
         return node;
     }
 

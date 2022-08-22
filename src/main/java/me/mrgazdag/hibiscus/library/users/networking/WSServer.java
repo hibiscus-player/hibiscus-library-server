@@ -79,7 +79,6 @@ public class WSServer extends AbstractReceiveListener {
             userId = "guest_" + UUID.randomUUID();
         } while (userIDMap.containsKey(userId));
         ConnectedUser user = new ConnectedUser(library, userId, null, library.getPermissionManager().getUser(null));
-        user.addGroup(library.getPermissionManager().getGuestGroup());
         user.setDisplayName("Guest");
         userIDMap.put(userId, user);
         return user;

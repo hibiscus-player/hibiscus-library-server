@@ -14,6 +14,7 @@ import me.mrgazdag.hibiscus.library.users.permissions.PermissionNode;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Iterator;
 import java.util.List;
 
 public class ConnectedUser implements DelegateEventNode<UserEvent>, PermissionHolder {
@@ -136,6 +137,16 @@ public class ConnectedUser implements DelegateEventNode<UserEvent>, PermissionHo
     }
 
     @Override
+    public Iterator<PermissionGroup> getGroups() {
+        return permissionNode.getGroups();
+    }
+
+    @Override
+    public Iterator<PermissionGroup> getAllGroups() {
+        return permissionNode.getAllGroups();
+    }
+
+    @Override
     public void addPermission(String permission) {
         permissionNode.addPermission(permission);
     }
@@ -153,6 +164,16 @@ public class ConnectedUser implements DelegateEventNode<UserEvent>, PermissionHo
     @Override
     public boolean hasPermission(String permission) {
         return permissionNode.hasPermission(permission);
+    }
+
+    @Override
+    public Iterator<String> getPermissions() {
+        return permissionNode.getPermissions();
+    }
+
+    @Override
+    public Iterator<String> getAllPermissions() {
+        return permissionNode.getAllPermissions();
     }
 
     @Override

@@ -1,9 +1,6 @@
 package me.mrgazdag.hibiscus.library.users.permissions;
 
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 public class PermissionNode implements PermissionHolder {
     private final Set<PermissionGroup> inherit;
@@ -29,6 +26,16 @@ public class PermissionNode implements PermissionHolder {
     @Override
     public void removeGroup(PermissionGroup group) {
         this.inherit.remove(group);
+    }
+
+    @Override
+    public Iterator<PermissionGroup> getGroups() {
+        return inherit.iterator();
+    }
+
+    @Override
+    public Iterator<PermissionGroup> getAllGroups() {
+        return new PermissionGroupIterator(inherit.iterator());
     }
 
     @Override
@@ -74,6 +81,16 @@ public class PermissionNode implements PermissionHolder {
             if (permissionGroup.hasPermission(permission)) return true;
         }
         return false;
+    }
+
+    @Override
+    public Iterator<String> getPermissions() {
+        return permissions.iterator();
+    }
+
+    @Override
+    public Iterator<String> getAllPermissions() {
+        return new PermissionIterator(this);
     }
 
     public static boolean checkWildcards(Set<String> permissions, String permission) {

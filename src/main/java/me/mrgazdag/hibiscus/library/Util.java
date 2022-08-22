@@ -1,7 +1,9 @@
 package me.mrgazdag.hibiscus.library;
 
-import java.io.BufferedReader;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Random;
@@ -17,12 +19,10 @@ public class Util {
         return sb.toString();
     }
     public static String readPath(Path path) throws IOException {
-        BufferedReader br = Files.newBufferedReader(path);
-        StringBuilder sb = new StringBuilder();
-        while (br.ready()) {
-            sb.append(br.readLine());
-        }
-        br.close();
-        return sb.toString();
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        InputStream stream = Files.newInputStream(path);
+        stream.transferTo(baos);
+        stream.close();
+        return baos.toString(StandardCharsets.UTF_8);
     }
 }
