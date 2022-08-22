@@ -1,5 +1,6 @@
 package me.mrgazdag.hibiscus.library.ui.page;
 
+import me.mrgazdag.hibiscus.library.registry.PluginRegistry;
 import me.mrgazdag.hibiscus.library.ui.UIManager;
 import me.mrgazdag.hibiscus.library.ui.change.PageChangeHandler;
 import me.mrgazdag.hibiscus.library.ui.component.ButtonComponent;
@@ -23,6 +24,7 @@ public class Page {
     private static final boolean DEFAULT_VISIBILITY = true;
 
     private final UIManager uiManager;
+    private final PluginRegistry registry;
     private final String id;
     private final String[] idParameters;
     private final PageContext emptyContext;
@@ -40,8 +42,9 @@ public class Page {
     private StringProperty pageIcon;
     private PageVisibilityProperty visible;
 
-    public Page(UIManager uiManager, String id, String...idParameters) {
-        this.uiManager = uiManager;
+    public Page(PluginRegistry registry, String id, String...idParameters) {
+        this.uiManager = registry.getLibraryServer().getUIManager();
+        this.registry = registry;
         this.id = id;
         if (id.contains("/")) throw new IllegalStateException("id cannot contain '/'");
         this.idParameters = idParameters;
@@ -75,11 +78,11 @@ public class Page {
     }
 
     public void register() {
-        uiManager.registerPage(this);
+        registry.registerPage(this);
         registered = true;
     }
     public void unregister() {
-        uiManager.unregisterPage(this);
+        registry.unregisterPage(this);
         registered = false;
     }
     public boolean isRegistered() {

@@ -2,6 +2,7 @@ package me.mrgazdag.hibiscus.library.plugin;
 
 import me.mrgazdag.hibiscus.library.APIVersion;
 import me.mrgazdag.hibiscus.library.LibraryServer;
+import me.mrgazdag.hibiscus.library.registry.PrivateGlobalRegistry;
 
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
@@ -15,12 +16,14 @@ import java.util.stream.Stream;
 public class JavaPluginManager {
     public static final Pattern NEWLINE_MATCHER = Pattern.compile("[\\n\\r]+");
     private final LibraryServer libraryServer;
+    private final PrivateGlobalRegistry registry;
     private final Path pluginsFolder;
     private final HashMap<String, Plugin> plugins;
     private final List<Plugin> pluginList;
 
-    public JavaPluginManager(LibraryServer libraryServer, Path pluginsFolder) {
+    public JavaPluginManager(LibraryServer libraryServer, PrivateGlobalRegistry pgr, Path pluginsFolder) {
         this.libraryServer = libraryServer;
+        this.registry = pgr;
         this.pluginsFolder = pluginsFolder;
         this.plugins = new HashMap<>();
         this.pluginList = new ArrayList<>();
@@ -68,6 +71,7 @@ public class JavaPluginManager {
                     plugin.libraryServer = libraryServer;
                     plugin.description = descriptionFile;
                     plugin.logger = pp;
+                    plugin.registry = registry.createPluginRegistry(plugin);
                     plugins.put(descriptionFile.getId(), plugin);
                     classLoader.setPlugin(plugin);
                     return plugin;

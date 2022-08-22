@@ -1,5 +1,6 @@
 package me.mrgazdag.hibiscus.library.ui.page;
 
+import me.mrgazdag.hibiscus.library.registry.PluginRegistry;
 import me.mrgazdag.hibiscus.library.ui.UIManager;
 import me.mrgazdag.hibiscus.library.ui.change.PageGroupChangeHandler;
 import me.mrgazdag.hibiscus.library.ui.property.StringProperty;
@@ -16,6 +17,7 @@ public class PageGroup {
     private static final String DEFAULT_NAME = "Unnamed Group";
     private static final boolean DEFAULT_VISIBILITY = true;
     private final UIManager uiManager;
+    private final PluginRegistry registry;
     private final String id;
     private boolean registered;
     private final List<Page> pages;
@@ -24,8 +26,9 @@ public class PageGroup {
     private final StringProperty groupName;
     private final PageGroupVisibilityProperty visibility;
 
-    public PageGroup(UIManager uiManager, String id) {
-        this.uiManager = uiManager;
+    public PageGroup(PluginRegistry registry, String id) {
+        this.uiManager = registry.getLibraryServer().getUIManager();
+        this.registry = registry;
         this.id = id;
         this.registered = false;
         this.pages = new ArrayList<>();
@@ -36,11 +39,11 @@ public class PageGroup {
     }
 
     public void register() {
-        uiManager.registerPageGroup(this);
+        registry.registerPageGroup(this);
         registered = true;
     }
     public void unregister() {
-        uiManager.unregisterPageGroup(this);
+        registry.unregisterPageGroup(this);
         registered = false;
     }
     public boolean isRegistered() {

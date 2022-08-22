@@ -115,7 +115,7 @@ public class ConnectedDevice implements DelegateEventNode<DeviceEvent> {
         sendPacket(new ServerWelcomePacket(user.getUserId(), user.getNickname()));
 
         // Send UI data
-        sendPacket(library.getUIManager().getInitialUIPacket(this));
+        sendPacket(library.getRegistry().getInitialUIPacket(this));
 
         // Login completed
         state = DeviceState.LOGGED_IN;

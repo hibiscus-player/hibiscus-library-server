@@ -1,6 +1,8 @@
 package me.mrgazdag.hibiscus.library.plugin;
 
 import me.mrgazdag.hibiscus.library.LibraryServer;
+import me.mrgazdag.hibiscus.library.registry.PluginRegistry;
+import me.mrgazdag.hibiscus.library.registry.Registry;
 
 import java.io.PrintStream;
 import java.nio.file.Path;
@@ -10,6 +12,7 @@ public class Plugin {
     Path dataFolder;
     PluginDescriptionFile description;
     PrintStream logger;
+    PluginRegistry registry;
     boolean canEnable;
     private boolean disabled;
 
@@ -18,26 +21,31 @@ public class Plugin {
         disabled = true;
     }
 
-    public void onEnable() {}
-    public void onDisable() {}
+    protected void onEnable() {}
+    protected void onDisable() {}
 
-    void enable() {
+    final void enable() {
         if (!canEnable) return;
         disabled = false;
         onEnable();
     }
-    void disable() {
+    final void disable() {
         if (!canEnable) return;
         disabled = true;
         onDisable();
+        registry.cleanup();
     }
 
-    public boolean isDisabled() {
+    public final boolean isDisabled() {
         return disabled;
     }
 
-    public PrintStream getLogger() {
+    public final PrintStream getLogger() {
         return logger;
+    }
+
+    protected final Registry getRegistry() {
+        return registry;
     }
 
     public final PluginDescriptionFile getDescriptionFile() {

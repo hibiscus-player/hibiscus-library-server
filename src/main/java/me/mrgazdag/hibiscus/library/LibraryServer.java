@@ -7,6 +7,9 @@ import me.mrgazdag.hibiscus.library.event.EventManager;
 import me.mrgazdag.hibiscus.library.playback.PlaybackMixer;
 import me.mrgazdag.hibiscus.library.plugin.JavaPluginManager;
 import me.mrgazdag.hibiscus.library.plugin.Plugin;
+import me.mrgazdag.hibiscus.library.registry.PrivateGlobalRegistry;
+import me.mrgazdag.hibiscus.library.registry.PublicGlobalRegistry;
+import me.mrgazdag.hibiscus.library.registry.Registry;
 import me.mrgazdag.hibiscus.library.ui.UIManager;
 import me.mrgazdag.hibiscus.library.users.ConnectedUser;
 import me.mrgazdag.hibiscus.library.users.networking.WSServer;
@@ -32,6 +35,7 @@ public class LibraryServer {
     private final CoreApi coreApi;
     private final Path rootFolder;
     private final WSServer wsServer;
+    private final Registry registry;
     private final UIManager uiManager;
     private final EventManager eventManager;
     private final JavaPluginManager pluginManager;
@@ -46,9 +50,11 @@ public class LibraryServer {
 
         this.coreApi = coreApi;
         this.wsServer = new WSServer(this);
+        PrivateGlobalRegistry pgr = new PrivateGlobalRegistry(this);
+        this.registry = new PublicGlobalRegistry(this, pgr);
         this.uiManager = new UIManager(this);
         this.eventManager = new EventManager(this);
-        this.pluginManager = new JavaPluginManager(this, rootFolder.resolve("plugins"));
+        this.pluginManager = new JavaPluginManager(this, pgr, rootFolder.resolve("plugins"));
         try {
             this.pluginManager.tryCreatePluginsDirectory();
             this.pluginManager.loadAllPlugins();
@@ -121,6 +127,10 @@ public class LibraryServer {
 
     public WSServer getWebsocketServer() {
         return wsServer;
+    }
+
+    public Registry getRegistry() {
+        return registry;
     }
 
     public UIManager getUIManager() {
