@@ -7,28 +7,32 @@ import me.mrgazdag.hibiscus.library.event.DelegateEventNode;
 import me.mrgazdag.hibiscus.library.event.EventNode;
 import me.mrgazdag.hibiscus.library.event.user.UserEvent;
 import me.mrgazdag.hibiscus.library.users.networking.ServerPacket;
+import me.mrgazdag.hibiscus.library.users.permissions.PermissionGroup;
+import me.mrgazdag.hibiscus.library.users.permissions.PermissionHolder;
+import me.mrgazdag.hibiscus.library.users.permissions.PermissionNode;
 
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
-public class ConnectedUser implements DelegateEventNode<UserEvent> {
-    //TODO permissions
-
+public class ConnectedUser implements DelegateEventNode<UserEvent>, PermissionHolder {
     private final LibraryServer library;
     private final List<ConnectedDevice> devices;
     private final String userId;
     private final EventNode<UserEvent> eventNode;
+    private final PermissionNode permissionNode;
     private String profileId;
     private String displayName;
     private String photoUrl;
     private String nickname;
 
-    public ConnectedUser(LibraryServer library, String userId, String profileId) {
+    public ConnectedUser(LibraryServer library, String userId, String profileId, PermissionNode permissionNode) {
         this.library = library;
         this.devices = new ArrayList<>();
         this.userId = userId;
         this.eventNode = new DefaultEventNode<>(library);
+        this.permissionNode = permissionNode;
         this.profileId = profileId;
         this.nickname = "";
     }
@@ -119,5 +123,55 @@ public class ConnectedUser implements DelegateEventNode<UserEvent> {
                 ", displayName='" + displayName + '\'' +
                 ", nickname='" + nickname + '\'' +
                 '}';
+    }
+
+    @Override
+    public void addGroup(PermissionGroup group) {
+        permissionNode.addGroup(group);
+    }
+
+    @Override
+    public void removeGroup(PermissionGroup group) {
+        permissionNode.removeGroup(group);
+    }
+
+    @Override
+    public void addPermission(String permission) {
+        permissionNode.addPermission(permission);
+    }
+
+    @Override
+    public void addPermissions(String... permissions) {
+        permissionNode.addPermissions(permissions);
+    }
+
+    @Override
+    public void addPermissions(Collection<String> permissions) {
+        permissionNode.addPermissions(permissions);
+    }
+
+    @Override
+    public boolean hasPermission(String permission) {
+        return permissionNode.hasPermission(permission);
+    }
+
+    @Override
+    public void removePermission(String permission) {
+        permissionNode.removePermission(permission);
+    }
+
+    @Override
+    public void removePermissions(String... permissions) {
+        permissionNode.removePermissions(permissions);
+    }
+
+    @Override
+    public void removePermissions(Collection<String> permissions) {
+        permissionNode.removePermissions(permissions);
+    }
+
+    @Override
+    public void clearPermissions() {
+        permissionNode.clearPermissions();
     }
 }

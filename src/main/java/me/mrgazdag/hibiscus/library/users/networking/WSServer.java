@@ -78,7 +78,8 @@ public class WSServer extends AbstractReceiveListener {
         do {
             userId = "guest_" + UUID.randomUUID();
         } while (userIDMap.containsKey(userId));
-        ConnectedUser user = new ConnectedUser(library, userId, null);
+        ConnectedUser user = new ConnectedUser(library, userId, null, library.getPermissionManager().getUser(null));
+        user.addGroup(library.getPermissionManager().getGuestGroup());
         user.setDisplayName("Guest");
         userIDMap.put(userId, user);
         return user;
@@ -86,9 +87,7 @@ public class WSServer extends AbstractReceiveListener {
 
     public ConnectedUser loadUser(String profileId) {
         String userId = "profile_" + profileId;
-        ConnectedUser user = new ConnectedUser(library, userId, profileId);
-        //TODO load saved user data
-
+        ConnectedUser user = new ConnectedUser(library, userId, profileId, library.getPermissionManager().getUser(profileId));
         userIDMap.put(userId, user);
         profileMap.put(profileId, user);
         return user;

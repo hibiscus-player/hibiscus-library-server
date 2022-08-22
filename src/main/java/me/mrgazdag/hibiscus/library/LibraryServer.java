@@ -13,6 +13,7 @@ import me.mrgazdag.hibiscus.library.registry.Registry;
 import me.mrgazdag.hibiscus.library.ui.UIManager;
 import me.mrgazdag.hibiscus.library.users.ConnectedUser;
 import me.mrgazdag.hibiscus.library.users.networking.WSServer;
+import me.mrgazdag.hibiscus.library.users.permissions.PermissionManager;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -38,6 +39,7 @@ public class LibraryServer {
     private final Registry registry;
     private final UIManager uiManager;
     private final EventManager eventManager;
+    private final PermissionManager permissionManager;
     private final JavaPluginManager pluginManager;
 
     public LibraryServer(Path rootFolder, CoreApi coreApi) {
@@ -54,6 +56,7 @@ public class LibraryServer {
         this.registry = new PublicGlobalRegistry(this, pgr);
         this.uiManager = new UIManager(this);
         this.eventManager = new EventManager(this);
+        this.permissionManager = new PermissionManager(this, rootFolder.resolve("perms.json"));
         this.pluginManager = new JavaPluginManager(this, pgr, rootFolder.resolve("plugins"));
         try {
             this.pluginManager.tryCreatePluginsDirectory();
@@ -143,6 +146,10 @@ public class LibraryServer {
 
     public EventManager getEventManager() {
         return eventManager;
+    }
+
+    public PermissionManager getPermissionManager() {
+        return permissionManager;
     }
 
     public JavaPluginManager getPluginManager() {
