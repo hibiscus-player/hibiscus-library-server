@@ -149,8 +149,6 @@ public class DefaultPacketHandler extends PacketHandler {
 
     @Override
     public void onClientChangePage(ClientChangePagePacket packet) {
-        device.getUser().getAllPermissions().forEachRemaining(System.out::println);
-        device.getUser().getAllGroups().forEachRemaining(e-> System.out.println(e.getGroupName()));
         String pageId = packet.getPageId();
         PageContext page;
         if (pageId == null) {
