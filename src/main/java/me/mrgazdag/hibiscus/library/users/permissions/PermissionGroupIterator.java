@@ -1,29 +1,32 @@
 package me.mrgazdag.hibiscus.library.users.permissions;
 
-import java.util.ArrayDeque;
-import java.util.Deque;
-import java.util.Iterator;
+import java.util.*;
 
 public class PermissionGroupIterator implements Iterator<PermissionGroup> {
-    private Deque<Iterator<PermissionGroup>> groups;
+    private final Deque<Iterator<PermissionGroup>> groups;
+    private final Set<PermissionGroup> visitedGroups;
     private PermissionGroup nextGroup;
 
     public PermissionGroupIterator(Iterator<PermissionGroup> source) {
         this.groups = new ArrayDeque<>();
         this.groups.addLast(source);
+        this.visitedGroups = new HashSet<>();
         stepNextGroup();
-        //TODO fix inheritance resulting in the same groups multiple times
-        //     like: A -> B -> D       results in        A, B, D, C, D
-        //             -> C -> D
     }
 
     private void stepNextGroup() {
         while (!groups.isEmpty()) {
             Iterator<PermissionGroup> it = groups.peekLast();
             if (it.hasNext()) {
-                nextGroup = it.next();
-                groups.addLast(nextGroup.getGroups());
-                return;
+                PermissionGroup group = it.next();
+                if (!visitedGroups.contains(group)) {
+                    visitedGroups.add(group);
+                    nextGroup = group;
+                    groups.addLast(nextGroup.getGroups());
+                    return;
+                } else {
+                    groups.removeLast();
+                }
             } else {
                 groups.removeLast();
             }
