@@ -3,10 +3,7 @@ package me.mrgazdag.hibiscus.library.ui.page;
 import me.mrgazdag.hibiscus.library.registry.PluginRegistry;
 import me.mrgazdag.hibiscus.library.ui.UIManager;
 import me.mrgazdag.hibiscus.library.ui.change.PageChangeHandler;
-import me.mrgazdag.hibiscus.library.ui.component.ButtonComponent;
-import me.mrgazdag.hibiscus.library.ui.component.TextBoxComponent;
-import me.mrgazdag.hibiscus.library.ui.component.TitleBoxComponent;
-import me.mrgazdag.hibiscus.library.ui.component.UIComponent;
+import me.mrgazdag.hibiscus.library.ui.component.*;
 import me.mrgazdag.hibiscus.library.ui.property.StringProperty;
 import me.mrgazdag.hibiscus.library.ui.property.visibility.PageVisibilityProperty;
 import me.mrgazdag.hibiscus.library.users.ConnectedDevice;
@@ -219,6 +216,14 @@ public class Page {
     public ButtonComponent createButton() {
         int id =  componentIdCounter.getAndIncrement();
         ButtonComponent component = new ButtonComponent(this, id);
+        components.put(id, component);
+        changeHandler.componentAdded(component);
+        return component;
+    }
+
+    public TextInputComponent createTextInput() {
+        int id =  componentIdCounter.getAndIncrement();
+        TextInputComponent component = new TextInputComponent(this, id);
         components.put(id, component);
         changeHandler.componentAdded(component);
         return component;

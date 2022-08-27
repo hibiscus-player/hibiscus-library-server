@@ -1,8 +1,10 @@
 package me.mrgazdag.hibiscus.library.ui.component;
 
 import me.mrgazdag.hibiscus.library.ui.action.client.ClientPageAction;
+import me.mrgazdag.hibiscus.library.ui.action.client.StringClientPageAction;
 import me.mrgazdag.hibiscus.library.ui.action.client.VoidClientPageAction;
 import me.mrgazdag.hibiscus.library.ui.action.server.ServerPageAction;
+import me.mrgazdag.hibiscus.library.ui.action.server.StringServerPageAction;
 import me.mrgazdag.hibiscus.library.ui.action.server.VoidServerPageAction;
 import me.mrgazdag.hibiscus.library.ui.change.ComponentChangeHandler;
 import me.mrgazdag.hibiscus.library.ui.color.Color;
@@ -121,6 +123,12 @@ public abstract class UIComponent {
         clientActions.add(action);
         return action;
     }
+    protected StringClientPageAction stringClientAction() {
+        short actionId = (short) clientActions.size();
+        StringClientPageAction action = new StringClientPageAction(actionId);
+        clientActions.add(action);
+        return action;
+    }
     protected <T extends ClientPageAction<?>> T customClientAction(Function<Short, T> constructor) {
         short actionId = (short) clientActions.size();
         T action = constructor.apply(actionId);
@@ -135,9 +143,15 @@ public abstract class UIComponent {
         serverActions.add(action);
         return action;
     }
+    protected StringServerPageAction stringServerAction() {
+        short actionId = (short) serverActions.size();
+        StringServerPageAction action = new StringServerPageAction(this, actionId);
+        serverActions.add(action);
+        return action;
+    }
 
-    protected <T extends ServerPageAction<?>> T customClientAction(BiFunction<UIComponent, Short, T> constructor) {
-        short actionId = (short) clientActions.size();
+    protected <T extends ServerPageAction<?>> T customServerAction(BiFunction<UIComponent, Short, T> constructor) {
+        short actionId = (short) serverActions.size();
         T action = constructor.apply(this, actionId);
         serverActions.add(action);
         return action;
