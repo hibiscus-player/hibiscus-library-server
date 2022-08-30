@@ -14,12 +14,14 @@ public class ServerUpdatePagePacket extends ServerPacket {
     private static final byte COMPONENTS_ADDED_BIT = 0x01;
     private static final byte COMPONENTS_REMOVED_BIT = 0x02;
     private static final byte PROPERTIES_UPDATED_BIT = 0x04;
+    private static final byte COMPONENTS_PARENT_UPDATED_BIT = 0x08;
     private final ByteBuffer buffer;
-    public ServerUpdatePagePacket(ConnectedDevice device, UIComponent componentAdded, UIComponent componentRemoved, UIProperty<?> propertyUpdated) {
+    public ServerUpdatePagePacket(ConnectedDevice device, UIComponent componentAdded, UIComponent componentRemoved, UIProperty<?> propertyUpdated, UIComponent componentParentUpdated) {
         byte mask = 0;
         if (componentAdded != null) mask |= COMPONENTS_ADDED_BIT;
         if (componentRemoved != null) mask |= COMPONENTS_REMOVED_BIT;
         if (propertyUpdated != null) mask |= PROPERTIES_UPDATED_BIT;
+        if (componentParentUpdated != null) mask |= COMPONENTS_PARENT_UPDATED_BIT;
 
         int length = 1 + 1; // Packet ID + Mask
 
@@ -45,6 +47,17 @@ public class ServerUpdatePagePacket extends ServerPacket {
             length += updatedValue.size();
         } else updatedValue = null;
 
+        ByteBuffer parentUpdate;
+        if (componentParentUpdated != null) {
+            length += 4; // List size (will be 1)
+            parentUpdate = ByteBuffer.allocate(12);
+            parentUpdate.putInt(componentParentUpdated.getComponentId());
+            parentUpdate.putInt(componentParentUpdated.getParent().getComponentId());
+            parentUpdate.putInt(componentParentUpdated.getChildIndex());
+            length += parentUpdate.position();
+            parentUpdate.position(0);
+        } else parentUpdate = null;
+
         buffer = ByteBuffer.allocateDirect(length);
         buffer.put(getID());
         buffer.put(mask);
@@ -60,14 +73,19 @@ public class ServerUpdatePagePacket extends ServerPacket {
             buffer.putInt(1); // List size
             updatedValue.serialize(buffer);
         }
+        if (componentParentUpdated != null) {
+            buffer.putInt(1);
+            buffer.put(parentUpdate);
+        }
 
         buffer.position(0);
     }
-    public ServerUpdatePagePacket(ConnectedDevice device, Collection<UIComponent> componentsAdded, Collection<UIComponent> componentsRemoved, Collection<UIProperty<?>> propertiesUpdated) {
+    public ServerUpdatePagePacket(ConnectedDevice device, Collection<UIComponent> componentsAdded, Collection<UIComponent> componentsRemoved, Collection<UIProperty<?>> propertiesUpdated, Collection<UIComponent> componentsParentUpdated) {
         byte mask = 0;
         if (componentsAdded != null && componentsAdded.size() > 0) mask |= COMPONENTS_ADDED_BIT;
         if (componentsRemoved != null && componentsRemoved.size() > 0) mask |= COMPONENTS_REMOVED_BIT;
         if (propertiesUpdated != null && propertiesUpdated.size() > 0) mask |= PROPERTIES_UPDATED_BIT;
+        if (componentsParentUpdated != null && componentsParentUpdated.size() > 0) mask |= COMPONENTS_PARENT_UPDATED_BIT;
 
         int length = 1 + 1; // Packet ID + Mask
 
@@ -108,6 +126,22 @@ public class ServerUpdatePagePacket extends ServerPacket {
             }
         } else toUpdate = null;
 
+        List<ByteBuffer> toParentUpdate;
+        if ((mask & COMPONENTS_PARENT_UPDATED_BIT) > 0) {
+            length += 4; // List size
+
+            toParentUpdate = new ArrayList<>();
+            for (UIComponent component : componentsParentUpdated) {
+                ByteBuffer serialized = ByteBuffer.allocate(12);
+                serialized.putInt(component.getComponentId());
+                serialized.putInt(component.getParent().getComponentId());
+                serialized.putInt(component.getChildIndex());
+                length += serialized.position();
+                serialized.position(0);
+                toParentUpdate.add(serialized);
+            }
+        } else toParentUpdate = null;
+
         buffer = ByteBuffer.allocateDirect(length);
         buffer.put(getID());
         buffer.put(mask);
@@ -130,6 +164,12 @@ public class ServerUpdatePagePacket extends ServerPacket {
             buffer.putInt(toUpdate.size()); // List size
             for (UpdatedProperty<?> prop : toUpdate) {
                 prop.serialize(buffer);
+            }
+        }
+        if ((mask & COMPONENTS_PARENT_UPDATED_BIT) > 0) {
+            buffer.putInt(toParentUpdate.size());
+            for (ByteBuffer b : toParentUpdate) {
+                buffer.put(b);
             }
         }
 

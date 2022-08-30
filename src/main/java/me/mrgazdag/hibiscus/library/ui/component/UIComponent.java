@@ -29,6 +29,8 @@ public abstract class UIComponent {
     private final List<ClientPageAction<?>> clientActions;
     private final List<ServerPageAction<?>> serverActions;
     private final ComponentVisibilityProperty visibilityProperty;
+    private UIContainer parent;
+    private int childIndex;
 
     public UIComponent(Page page, int componentId) {
         this.page = page;
@@ -38,6 +40,33 @@ public abstract class UIComponent {
         this.clientActions = new ArrayList<>();
         this.serverActions = new ArrayList<>();
         this.visibilityProperty = visibilityProperty(true);
+    }
+
+    public void updateParent(UIContainer parent, int childIndex) {
+        UIContainer oldParent = this.parent;
+        if (this.parent != parent && this.parent != null) {
+            this.parent.clearChild(childIndex);
+        }
+        this.parent = parent;
+        this.childIndex = childIndex;
+        changeHandler.parentUpdated(this, oldParent);
+    }
+
+    public UIContainer getParent() {
+        return parent;
+    }
+
+    public int getChildIndex() {
+        return childIndex;
+    }
+
+    public Page getPage() {
+        return page;
+    }
+
+
+    public int getComponentId() {
+        return componentId;
     }
 
     // Properties
@@ -165,14 +194,24 @@ public abstract class UIComponent {
         return getVisibility().get(device);
     }
 
-    public int getComponentId() {
-        return componentId;
+    public boolean areParentsVisible(ConnectedDevice device) {
+        UIContainer parent = getParent();
+        while (parent instanceof UIComponent component) {
+            if (!component.isVisible(device)) return false;
+            parent = component.getParent();
+        }
+        return parent != null;
     }
 
     @SuppressWarnings("unchecked")
     public ByteBuffer serializeAdd(ConnectedDevice device) {
         String typeName = getComponentTypeName();
-        int originalLength = 4 + 2 + typeName.length()*2 + 2; // Component ID + Type Name length (short) + Type Name (UTF16LE) + Data Length (short)
+        int originalLength = 4 + // Component ID (int)
+                2 + // Type Name Length (short)
+                4 + // Parent ID (int)
+                4 + // Child Index (int)
+                typeName.length()*2 // Type Name (string UTF16BE)
+                + 2; // Data Length (short)
         int dataLength = 0;
         List<Object> valueList = new ArrayList<>();
         for (UIProperty<?> property : properties) {
@@ -187,6 +226,10 @@ public abstract class UIComponent {
         // Type Name
         buf.putShort((short) typeName.length());
         buf.put(typeName.getBytes(StandardCharsets.UTF_16BE));
+        // Parent ID
+        buf.putInt(parent.getComponentId());
+        // Child Index
+        buf.putInt(childIndex);
         // Data
         buf.putShort((short) dataLength);
         for (int i = 0; i < properties.size(); i++) {

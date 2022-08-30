@@ -15,7 +15,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
-public class Page {
+public class Page implements UIContainer {
     private static final String DEFAULT_NAME = "Unnamed Page";
     private static final String DEFAULT_ICON = PageIcons.MATERIAL_ARTICLE;
     private static final boolean DEFAULT_VISIBILITY = true;
@@ -30,8 +30,9 @@ public class Page {
     private final Set<ConnectedDevice> activeDevices;
 
     // Components
-    private final Map<Integer, UIComponent> components;
+    private final Map<Integer, UIComponent> componentIdMap;
     private final AtomicInteger componentIdCounter;
+    private UIComponent rootElement;
 
     // Properties
     private final PageChangeHandler changeHandler;
@@ -50,8 +51,8 @@ public class Page {
         this.group = null;
         this.activeDevices = new HashSet<>();
 
-        this.components = new LinkedHashMap<>();
-        this.componentIdCounter = new AtomicInteger(0);
+        this.componentIdMap = new LinkedHashMap<>();
+        this.componentIdCounter = new AtomicInteger(1);
 
         this.changeHandler = new PageChangeHandler(uiManager, this);
         this.pageName = new StringProperty(null, (short) -1, changeHandler, DEFAULT_NAME);
@@ -100,7 +101,7 @@ public class Page {
 
     public void addDevice(ConnectedDevice device) {
         activeDevices.add(device);
-        device.sendPacket(new ServerUpdatePagePacket(device, components.values(), null, null));
+        device.sendPacket(new ServerUpdatePagePacket(device, componentIdMap.values(), null, null, null));
     }
     public void removeDevice(ConnectedDevice device) {
         activeDevices.remove(device);
@@ -142,6 +143,22 @@ public class Page {
 
     public boolean isVisible(ConnectedDevice device) {
         return visible.get(device);
+    }
+
+    @Override
+    public boolean areParentsVisible(ConnectedDevice device) {
+        return true;
+    }
+
+    public void setRootElement(UIComponent rootElement) {
+        setChildComponent(0, rootElement);
+    }
+
+    @Override
+    public void clearChild(int childIndex) {
+        if (childIndex != 0) throw new IllegalArgumentException("Cannot clear a child of Page other than the root element!");
+        if (this.rootElement != null) changeHandler.componentRemoved(rootElement);
+        this.rootElement = null;
     }
 
     public PageVisibilityProperty getVisibility() {
@@ -187,45 +204,80 @@ public class Page {
     }
 
     public Collection<UIComponent> getComponents() {
-        return components.values();
+        return componentIdMap.values();
     }
     public UIComponent getComponent(int id) {
-        return components.get(id);
+        return componentIdMap.get(id);
     }
 
     public void removeComponent(UIComponent component) {
-        components.remove(component);
+        componentIdMap.remove(component);
+    }
+
+    public UIComponent getRootElement() {
+        return getChildComponent(0);
+    }
+
+    @Override
+    public void setChildComponent(int id, UIComponent component) {
+        if (id != 0) throw new IllegalArgumentException("Cannot set a child of Page other than the root element!");
+        if (this.rootElement != null) {
+            this.rootElement.updateParent(null, -1);
+            changeHandler.componentRemoved(rootElement);
+        }
+        this.rootElement = component;
+        if (component != null) {
+            component.updateParent(this, 0);
+            changeHandler.componentAdded(component);
+        }
+    }
+
+    @Override
+    public UIComponent getChildComponent(int id) {
+        return id == 0 ? rootElement : null;
+    }
+
+    @Override
+    public int getMaxChildrenCount() {
+        return 1;
+    }
+
+    @Override
+    public int getComponentId() {
+        return 0;
     }
 
     public TitleBoxComponent createTitleBox() {
-        int id =  componentIdCounter.getAndIncrement();
+        int id = componentIdCounter.getAndIncrement();
         TitleBoxComponent component = new TitleBoxComponent(this, id);
-        components.put(id, component);
-        changeHandler.componentAdded(component);
+        componentIdMap.put(id, component);
         return component;
     }
-
     public TextBoxComponent createTextBox() {
-        int id =  componentIdCounter.getAndIncrement();
+        int id = componentIdCounter.getAndIncrement();
         TextBoxComponent component = new TextBoxComponent(this, id);
-        components.put(id, component);
-        changeHandler.componentAdded(component);
+        componentIdMap.put(id, component);
         return component;
     }
 
     public ButtonComponent createButton() {
-        int id =  componentIdCounter.getAndIncrement();
+        int id = componentIdCounter.getAndIncrement();
         ButtonComponent component = new ButtonComponent(this, id);
-        components.put(id, component);
-        changeHandler.componentAdded(component);
+        componentIdMap.put(id, component);
         return component;
     }
 
     public TextInputComponent createTextInput() {
-        int id =  componentIdCounter.getAndIncrement();
+        int id = componentIdCounter.getAndIncrement();
         TextInputComponent component = new TextInputComponent(this, id);
-        components.put(id, component);
-        changeHandler.componentAdded(component);
+        componentIdMap.put(id, component);
+        return component;
+    }
+
+    public BlockLayoutComponent createBlockLayout() {
+        int id = componentIdCounter.getAndIncrement();
+        BlockLayoutComponent component = new BlockLayoutComponent(this, id);
+        componentIdMap.put(id, component);
         return component;
     }
 }

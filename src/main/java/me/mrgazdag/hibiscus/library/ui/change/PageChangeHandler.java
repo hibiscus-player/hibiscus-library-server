@@ -69,7 +69,7 @@ public class PageChangeHandler extends SimpleChangeHandler {
     public void componentAdded(UIComponent component) {
         if (autoUpdate) {
             iterateDevices(device->{
-                device.sendPacket(new ServerUpdatePagePacket(device, component, null, null));
+                device.sendPacket(new ServerUpdatePagePacket(device, component, null, null, null));
             });
         } else {
             synchronized (sync) {
@@ -86,7 +86,7 @@ public class PageChangeHandler extends SimpleChangeHandler {
     public void componentRemoved(UIComponent component) {
         if (autoUpdate) {
             iterateDevices(device->{
-                device.sendPacket(new ServerUpdatePagePacket(device, null, component, null));
+                device.sendPacket(new ServerUpdatePagePacket(device, null, component, null, null));
             });
         } else {
             synchronized (sync) {
