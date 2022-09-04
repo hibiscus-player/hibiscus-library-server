@@ -28,6 +28,14 @@ public class TextInputComponent extends UIComponent {
         return defaultValue.get(device);
     }
 
+    public EnumProperty<UpdateEventType> getUpdateEventType() {
+        return updateEvents;
+    }
+
+    public UpdateEventType getUpdateEventType(ConnectedDevice device) {
+        return updateEvents.get(device);
+    }
+
     public StringClientPageAction onInputChange() {
         return this.onInputChange;
     }
